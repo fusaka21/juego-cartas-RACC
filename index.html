@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Platformer 3D Jugable</title>
+<style>
+    body { margin:0; overflow:hidden; }
+    #ui {
+        position: fixed; top:10px; left:10px;
+        color: white; font-family: sans-serif;
+        z-index: 10; opacity:0.8;
+    }
+</style>
+</head>
+<body>
+<div id="ui">WASD mover · ESPACIO saltar</div>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// =======================
+// ESCENA
+// =======================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb); // cielo azul
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 4, 8);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// =======================
+// CONTROLES
+// =======================
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0,1,0);
+controls.enablePan = false;
+controls.enableDamping = true;
+
+// =======================
+// LUCES
+// =======================
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(10,20,10);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+sun.shadow.camera.left = -20;
+sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 20;
+sun.shadow.camera.bottom = -20;
+scene.add(sun);
+
+// =======================
+// SUELO
+// =======================
+const groundMat = new THREE.MeshStandardMaterial({color:0x228B22});
+const ground = new THREE.Mesh(new THREE.BoxGeometry(50,1,50), groundMat);
+ground.position.y = -0.5;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// =======================
+// PLATAFORMAS
+// =======================
+const platforms = [];
+function createPlatform(x,y,z,w=4,h=1,d=4){
+    const mat = new THREE.MeshStandardMaterial({color:0x808080});
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    platforms.push(mesh);
+}
+
+// Ejemplo de plataformas
+createPlatform(5,1,0);
+createPlatform(10,3,-2);
+createPlatform(15,5,2);
+createPlatform(20,7,0);
+
+// =======================
+// JUGADOR
+// =======================
+const player = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.5,1.2,4,8),
+    new THREE.MeshStandardMaterial({color:0xff4444})
+);
+player.position.set(0,2,0);
+player.castShadow = true;
+player.receiveShadow = true;
+scene.add(player);
+
+const velocity = new THREE.Vector3();
+let onGround = false;
+
+// =======================
+// INPUT
+// =======================
+const keys = {};
+window.addEventListener("keydown", e => keys[e.code]=true);
+window.addEventListener("keyup", e => keys[e.code]=false);
+
+// =======================
+// FÍSICA BÁSICA
+// =======================
+const gravity = -0.02;
+const speed = 0.12;
+const jumpForce = 0.45;
+
+function checkCollisions(){
+    onGround=false;
+    const playerBox = new THREE.Box3().setFromObject(player);
+    const colliders = [ground,...platforms];
+
+    for(const obj of colliders){
+        const box = new THREE.Box3().setFromObject(obj);
+        if(playerBox.intersectsBox(box)){
+            if(velocity.y<=0){
+                player.position.y = box.max.y + 1;
+                velocity.y=0;
+                onGround=true;
+            }
+        }
+    }
+}
+
+// =======================
+// LOOP DEL JUEGO
+// =======================
+function update(){
+    // Movimiento
+    let dir = new THREE.Vector3();
+    if(keys["KeyW"]) dir.z -=1;
+    if(keys["KeyS"]) dir.z +=1;
+    if(keys["KeyA"]) dir.x -=1;
+    if(keys["KeyD"]) dir.x +=1;
+    dir.normalize();
+
+    player.position.x += dir.x*speed;
+    player.position.z += dir.z*speed;
+
+    // Salto
+    if(keys["Space"] && onGround){
+        velocity.y = jumpForce;
+        onGround=false;
+    }
+
+    // Gravedad
+    velocity.y += gravity;
+    player.position.y += velocity.y;
+
+    // Colisiones
+    checkCollisions();
+
+    // Cámara sigue al jugador
+    controls.target.copy(player.position);
+    controls.update();
+}
+
+// =======================
+// RENDER
+// =======================
+function animate(){
+    requestAnimationFrame(animate);
+    update();
+    renderer.render(scene,camera);
+}
+animate();
+
+// =======================
+// RESIZE
+// =======================
+window.addEventListener("resize", ()=>{
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>

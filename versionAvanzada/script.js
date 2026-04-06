@@ -118,8 +118,14 @@ const flashcards = [
   },
 ];
 
+const primeraTarjeta = flashcards.shift();
+const ultimaTarjeta = flashcards.pop();
+flashcards.sort(() => Math.random() - 0.5);
+flashcards.unshift(primeraTarjeta);
+flashcards.push(ultimaTarjeta);
+
 let currentIndex = 0;
-let isAnimating = false; // Variable para bloquear clics durante la animación
+let isAnimating = false;
 
 const front = document.getElementById("front");
 const back = document.getElementById("back");
@@ -146,37 +152,31 @@ function changeCardWithAnimation(direction) {
   const wasFlipped = card.classList.contains("flipped");
   card.classList.remove("flipped");
 
-  // Si estaba del revés, esperamos 300ms a que se gire antes de deslizar
   const flipDelay = wasFlipped ? 300 : 0;
 
   setTimeout(() => {
     const exitX = direction === 1 ? "-50px" : "50px";
     const entryX = direction === 1 ? "50px" : "-50px";
 
-    // Fase 1: Desaparecer y moverse
     card.style.transition = "transform 0.25s ease-in, opacity 0.25s ease-in";
     card.style.transform = `translateX(${exitX})`;
     card.style.opacity = "0";
 
     setTimeout(() => {
-      // Fase 2: Cambiar contenido mientras es invisible y prepararla al otro lado
       currentIndex += direction;
       showCard();
 
       card.style.transition = "none";
       card.style.transform = `translateX(${entryX})`;
 
-      // Forzar reflow para que el navegador procese el cambio de posición sin transición
       void card.offsetWidth;
 
-      // Fase 3: Aparecer deslizándose
       card.style.transition =
         "transform 0.25s ease-out, opacity 0.25s ease-out";
       card.style.transform = "translateX(0px)";
       card.style.opacity = "1";
 
       setTimeout(() => {
-        // Limpiar estilos y permitir clics de nuevo
         card.style.transition = "";
         card.style.transform = "";
         isAnimating = false;
@@ -190,6 +190,8 @@ function nextCard() {
 
   if (currentIndex < flashcards.length - 1) {
     changeCardWithAnimation(1);
+  } else {
+    showEndScreen();
   }
 }
 
@@ -199,6 +201,94 @@ function prevCard() {
   if (currentIndex > 0) {
     changeCardWithAnimation(-1);
   }
+}
+
+function toggleNavButtons(show) {
+  const btns = document.querySelectorAll("button");
+  btns.forEach((btn) => {
+    const action = btn.getAttribute("onclick");
+    if (action === "nextCard()" || action === "prevCard()") {
+      btn.style.display = show ? "inline-block" : "none";
+    }
+  });
+}
+
+function showEndScreen() {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const wasFlipped = card.classList.contains("flipped");
+  card.classList.remove("flipped");
+
+  const flipDelay = wasFlipped ? 300 : 0;
+
+  setTimeout(() => {
+    card.style.transition = "transform 0.4s ease-in, opacity 0.4s ease-in";
+    card.style.transform = "scale(0.8)";
+    card.style.opacity = "0";
+
+    setTimeout(() => {
+      card.style.display = "none";
+      toggleNavButtons(false);
+      progress.textContent = "¡Completado!";
+
+      let endScreen = document.getElementById("end-screen");
+
+      if (!endScreen) {
+        endScreen = document.createElement("div");
+        endScreen.id = "end-screen";
+        endScreen.style.textAlign = "center";
+        endScreen.style.padding = "20px";
+
+        endScreen.innerHTML = `
+            <h2>¡Enhorabuena! 🎉</h2>
+            <p>Has completado todas las preguntas sobre seguridad vial.</p>
+            <button onclick="restart()" style="margin-top: 15px; padding: 10px 20px; cursor: pointer;">Volver a empezar</button>
+        `;
+
+        card.parentNode.insertBefore(endScreen, card.nextSibling);
+      } else {
+        endScreen.style.display = "block";
+      }
+
+      endScreen.style.opacity = "0";
+      endScreen.style.transform = "translateY(20px)";
+      endScreen.style.transition = "none";
+
+      void endScreen.offsetWidth; 
+
+      endScreen.style.transition =
+        "transform 0.4s ease-out, opacity 0.4s ease-out";
+      endScreen.style.opacity = "1";
+      endScreen.style.transform = "translateY(0)";
+
+      setTimeout(() => {
+        isAnimating = false;
+      }, 400);
+    }, 400);
+  }, flipDelay);
+}
+
+function restart() {
+  const primera = flashcards.shift();
+  const ultima = flashcards.pop();
+  flashcards.sort(() => Math.random() - 0.5);
+  flashcards.unshift(primera);
+  flashcards.push(ultima);
+
+  currentIndex = 0;
+  isAnimating = false;
+
+  card.style.opacity = "1";
+  card.style.transform = "";
+  card.style.transition = "none";
+
+  document.getElementById("end-screen").style.display = "none";
+
+  card.style.display = "block";
+  toggleNavButtons(true);
+
+  showCard();
 }
 
 showCard();

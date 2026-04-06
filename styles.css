@@ -55,6 +55,7 @@ body {
     padding: 20px;
     backface-visibility: hidden;
     font-size: 18px;
+    flex-direction: column;
 }
 
 .card-back {

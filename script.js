@@ -1,7 +1,91 @@
 const flashcards = [
-    { question: "¿Capital de Francia?", answer: "París" },
-    { question: "¿2 + 2?", answer: "4" },
-    { question: "¿Lenguaje para páginas web?", answer: "HTML" }
+  {
+    question: "¿Cuál es la principal causa de accidentes?",
+    answer:
+      'Las distracciones al volante, como comprueba el estudio de<a href="https://revista.dgt.es/es/noticias/nacional/2023/05MAYO/0510-Linea-Directa-Distracciones.shtml"> Línea directa y la DGT</a>',
+  },
+  {
+    question:
+      "¿Por qué crees que las distracciones al volante son un problema tan importante?",
+    answer:
+      "Porque aparte de ser una de las causas principales, la mayoría suelen ser mortales.",
+  },
+  {
+    question:
+      "¿Piensas que los accidentes por distracción están aumentando o disminuyendo con el tiempo?",
+    answer:
+      "Están aumentando, en este gráfico de nuestra web web aparece como se puede ver una tendencia creciente desde los años del COVID-19",
+  },
+  {
+    question:
+      "¿Qué grupo de edad crees que está más expuesto a accidentes por distracción?",
+    answer: "18 - 29 años como aparece aquí",
+  },
+  {
+    question:
+      "¿Cuál crees que es la distracción más peligrosa cuando conduces?",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
+  {
+    question: "",
+    answer: "",
+  },
 ];
 
 let currentIndex = 0;
@@ -12,8 +96,8 @@ const card = document.getElementById("card");
 const progress = document.getElementById("progress");
 
 function showCard() {
-    front.textContent = flashcards[currentIndex].question;
-    back.textContent = flashcards[currentIndex].answer;
+    front.innerHTML = flashcards[currentIndex].question;
+    back.innerHTML = flashcards[currentIndex].answer;
     progress.textContent = `Tarjeta ${currentIndex + 1} de ${flashcards.length}`;
     card.classList.remove("flipped");
 }

@@ -111,18 +111,31 @@ const flashcards = [
       "Que te emociones demasiado. La euforia hace que ganes confianza, aceleres sin darte cuenta y tu mente se vaya a la letra de la canción en lugar de a las señales de tráfico.",
   },
   {
-    question:
-      "Y ahora para comprovar que has estado atento, ¿Cuánta distáncia recorres en 5 segundos a 120 km/h?",
-    answer:
-      "Como antes hemos dicho, recorres aproximadamente 167 metros, lo que es más que un campo de fútbol y medio.",
+    // Esta tarjeta actuará como plantilla para la pregunta trampa del final
+    question: "",
+    answer: "",
   },
 ];
 
-const primeraTarjeta = flashcards.shift();
-const ultimaTarjeta = flashcards.pop();
-flashcards.sort(() => Math.random() - 0.5);
-flashcards.unshift(primeraTarjeta);
-flashcards.push(ultimaTarjeta);
+// Función para barajar y preparar la pregunta trampa final
+function prepararTarjetas() {
+  // Solo sacamos la última tarjeta (la plantilla) para que no se mezcle
+  const ultimaTarjeta = flashcards.pop();
+  
+  // Mezclamos TODAS las tarjetas restantes
+  flashcards.sort(() => Math.random() - 0.5);
+  
+  // En este punto, la 5ª tarjeta está en el índice 4. 
+  // Modificamos dinámicamente el texto de la plantilla.
+  ultimaTarjeta.question = "<strong>Vamos a comprobar si has estado atento:</strong><br><br>" + flashcards[4].question;
+  ultimaTarjeta.answer = flashcards[4].answer;
+  
+  // Ponemos la tarjeta trampa al final del todo
+  flashcards.push(ultimaTarjeta);
+}
+
+// Preparamos las tarjetas la primera vez que carga el script
+prepararTarjetas();
 
 let currentIndex = 0;
 let isAnimating = false;
@@ -270,18 +283,18 @@ function showEndScreen() {
 }
 
 function restart() {
-  const primera = flashcards.shift();
-  const ultima = flashcards.pop();
-  flashcards.sort(() => Math.random() - 0.5);
-  flashcards.unshift(primera);
-  flashcards.push(ultima);
+  prepararTarjetas();
 
   currentIndex = 0;
   isAnimating = false;
 
+  card.style.transition = "none";
   card.style.opacity = "1";
   card.style.transform = "";
-  card.style.transition = "none";
+  
+  void card.offsetWidth;
+
+  card.style.transition = "";
 
   document.getElementById("end-screen").style.display = "none";
 
@@ -292,3 +305,31 @@ function restart() {
 }
 
 showCard();
+
+// --- COMANDO OCULTO PARA TESTEAR (Ctrl + Q) ---
+document.addEventListener("keydown", (event) => {
+  // Comprueba si se pulsa la tecla Ctrl (o Cmd en Mac) y la letra 'q' (mayúscula o minúscula)
+  if (event.ctrlKey || event.metaKey) {
+    const tecla = event.key.toLowerCase();
+
+    // Ctrl + Q: Salta a la última pregunta (20)
+    if (tecla === "q") {
+      event.preventDefault(); // Evita que el navegador haga algo por defecto
+      if (isAnimating) return; // Evitamos romper animaciones
+      
+      currentIndex = flashcards.length - 1;
+      showCard();
+      console.log("Comando activado: Saltando a la última pregunta.");
+    }
+
+    // Ctrl + E (Alternativa a Ctrl+W): Salta a la pregunta 5
+    if (tecla === "e") {
+      event.preventDefault(); 
+      if (isAnimating) return; 
+      
+      currentIndex = 4; // El índice 4 corresponde a la 5ª pregunta
+      showCard();
+      console.log("Comando activado: Saltando a la pregunta 5.");
+    }
+  }
+});
